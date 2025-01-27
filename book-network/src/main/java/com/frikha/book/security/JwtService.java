@@ -43,11 +43,15 @@ public class JwtService {
         return generateToken(new HashMap<>(), userDetails);
     }
 
-    private String generateToken(Map<String, Object> claims, UserDetails userDetails) {
-        return buildToken(claims,userDetails , jwtExpiration);
+    public String generateToken(
+            Map<String, Object> extraClaims,
+            UserDetails userDetails
+    ) {
+        return buildToken(extraClaims, userDetails, jwtExpiration);
     }
+
     private String buildToken(
-            Map<String, Object> claims,
+            Map<String, Object> extraClaims,
             UserDetails userDetails,
             long expiration)
     {
@@ -56,7 +60,7 @@ public class JwtService {
                 .map(GrantedAuthority::getAuthority)
                 .toList();
         return Jwts.builder()
-                .setClaims(claims)
+                .setClaims(extraClaims)
                 .setSubject(userDetails.getUsername())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + expiration))
