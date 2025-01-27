@@ -6,6 +6,7 @@ import com.frikha.book.history.BookTransactionHistory;
 
 import com.frikha.book.history.BookTransactionHistoryRepository;
 import com.frikha.book.user.User;
+import com.frikha.exception.OperationNotPermittedException;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Objects;
 
 import static com.frikha.book.book.BookSpecification.withOwnerId;
 
@@ -113,5 +115,17 @@ public class BookService {
                 allBorrowedBooks.isFirst(),
                 allBorrowedBooks.isLast()
         );
+    }
+
+    public Integer updateShareableStatus(Integer bookId, Authentication connectedUser) {
+        Book book = bookRepository.findById(bookId)
+                .orElseThrow(() -> new EntityNotFoundException("No book found with ID:: " + bookId));
+        User user = ((User) connectedUser.getPrincipal());
+        if (!Objects.equals(book.getOwner().getBooks(), user.getId())) {
+            throw new OperationNotPermittedException("You cannot update others books shareable status");
+        }
+        book.setShareable(!book.isShareable());
+        bookRepository.save(book);
+        return bookId;
     }
 }
