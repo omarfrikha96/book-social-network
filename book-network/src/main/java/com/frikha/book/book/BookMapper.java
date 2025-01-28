@@ -1,5 +1,6 @@
 package com.frikha.book.book;
 
+import com.frikha.book.file.FileUtils;
 import com.frikha.book.history.BookTransactionHistory;
 import org.springframework.stereotype.Service;
 
@@ -28,7 +29,7 @@ public class BookMapper {
                 .archived(book.isArchived())
                 .shareable(book.isShareable())
                 .owner(book.getOwner().getFullName())
-               // .cover()
+                .cover(FileUtils.readFileFromLocation(book.getBookCover())) // cover is a file path
                 .build();
     }
 
