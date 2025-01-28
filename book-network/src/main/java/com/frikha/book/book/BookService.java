@@ -1,6 +1,7 @@
 package com.frikha.book.book;
 
 import com.frikha.book.common.PageResponse;
+import com.frikha.book.file.FileStorageService;
 import com.frikha.book.history.BookTransactionHistory;
 
 
@@ -17,6 +18,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Objects;
@@ -31,6 +33,7 @@ public class BookService {
     private final BookRepository bookRepository;
     private final BookMapper bookMapper;
     private final BookTransactionHistoryRepository transactionHistoryRepository;
+    private final FileStorageService fileStorageService;
 
     public Integer save(BookRequest request, Authentication connectedUser) {
         User user = ((User) connectedUser.getPrincipal());
@@ -205,5 +208,14 @@ public class BookService {
 
         bookTransactionHistory.setReturnApproved(true);
         return transactionHistoryRepository.save(bookTransactionHistory).getId();
+    }
+
+    public void uploadBookCoverPicture(MultipartFile file, Authentication connectedUser, Integer bookId) {
+        Book book = bookRepository.findById(bookId)
+                .orElseThrow(() -> new EntityNotFoundException("No book found with ID:: " + bookId));
+        User user = ((User) connectedUser.getPrincipal());
+        var profilePicture = fileStorageService.saveFile(file,user.getId());
+        book.setBookCover(profilePicture);
+        bookRepository.save(book);
     }
 }
